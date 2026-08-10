@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hành Trình Toán Học Của Thanh Vân</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .game-card {
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 700px;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+        h1 { color: #4a154b; margin-top: 0; font-size: 26px; }
+        .welcome-title { color: #ff4757; }
+        .score-board {
+            display: flex;
+            justify-content: space-between;
+            background: #f1f2f6;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #2f3542;
+        }
+        .question-box {
+            background: #eccc68;
+            color: #2f3542;
+            padding: 20px;
+            border-radius: 16px;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .btn-option {
+            background: #70a1ff;
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 0 #1e90ff;
+        }
+        .btn-option:hover { background: #1e90ff; transform: translateY(-2px); }
+        .btn-option:active { transform: translateY(2px); box-shadow: none; }
+        .feedback {
+            font-size: 18px;
+            font-weight: bold;
+            min-height: 30px;
+            margin-bottom: 15px;
+        }
+        .correct { color: #2ed573; }
+        .wrong { color: #ff4757; }
+        .next-btn {
+            background: #2ed573;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            display: none;
+            box-shadow: 0 4px 0 #26af5f;
+            margin: 0 auto;
+        }
+        .progress-bar {
+            height: 10px;
+            background: #dfe4ea;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #ff6b81;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .badge {
+            display: inline-block;
+            background: #ffa502;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-card">
+    <span class="badge">Toán Lớp 4 dành cho Bé Thanh Vân 🌟</span>
+    <h1 class="welcome-title">🏰 Vương Quốc Toán Học Kỳ Diệu</h1>
+    
+    <div class="progress-bar">
+        <div class="progress-fill" id="progress"></div>
+    </div>
+
+    <div class="score-board">
+        <div>⭐ Điểm: <span id="score">0</span></div>
+        <div>🏆 Cấp độ: <span id="level">1</span>/10</div>
+    </div>
+
+    <div class="question-box" id="question">Đang tải câu hỏi...</div>
+
+    <div class="options-grid" id="options">
+        <!-- Các nút đáp án sẽ được tạo tự động bằng JS -->
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="next-btn" onclick="nextQuestion()">Câu Tiếp Theo ➔</button>
+</div>
+
+<script>
+    // Ngân hàng câu hỏi bám sát tài liệu Ôn tập Toán 4
+    const questions = [
+        {
+            question: "Trong các số sau, số nào là số chẵn?\n(12 656, 315, 649, 71)",
+            options: ["12 656", "315", "649", "71"],
+            answer: 0,
+            explain: "Số chẵn là số có chữ số tận cùng là 0, 2, 4, 6, 8!"
+        },
+        {
+            question: "Tính giá trị của biểu thức 2 + a với a = 12?",
+            options: ["10", "12", "14", "24"],
+            answer: 2,
+            explain: "Thay a = 12 vào ta có: 2 + 12 = 14."
+        },
+        {
+            question: "Góc bé hơn góc vuông được gọi là góc gì?",
+            options: ["Góc tù", "Góc nhọn", "Góc bẹt", "Góc vuông"],
+            answer: 1,
+            explain: "Góc nhọn bé hơn góc vuông!"
+        },
+        {
+            question: "Góc bẹt bằng mấy góc vuông?",
+            options: ["1 góc vuông", "2 góc vuông", "3 góc vuông", "4 góc vuông"],
+            answer: 1,
+            explain: "Góc bẹt bằng hai góc vuông (180 độ)."
+        },
+        {
+            question: "Số 514 293 có chữ số 5 thuộc hàng nào, lớp nào?",
+            options: [
+                "Hàng trăm nghìn, Lớp nghìn",
+                "Hàng chục nghìn, Lớp nghìn",
+                "Hàng triệu, Lớp triệu",
+                "Hàng trăm, Lớp đơn vị"
+            ],
+            answer: 0,
+            explain: "Chữ số 5 đứng ở vị trí Hàng trăm nghìn thuộc Lớp nghìn!"
+        },
+        {
+            question: "Làm tròn số 2 712 615 đến hàng trăm nghìn ta được số nào?",
+            options: ["2 600 000", "2 700 000", "2 800 000", "3 000 000"],
+            answer: 1,
+            explain: "Chữ số hàng chục nghìn là 1 (< 5) nên ta làm tròn xuống thành 2 700 000."
+        },
+        {
+            question: "1 tấn bằng bao nhiêu ki-lô-gam (kg)?",
+            options: ["10 kg", "100 kg", "1000 kg", "10000 kg"],
+            answer: 2,
+            explain: "1 tấn = 1 000 kg."
+        },
+        {
+            question: "Kết quả của phép tính: 53 640 + 8 290 là bao nhiêu?",
+            options: ["61 830", "61 930", "51 930", "60 930"],
+            answer: 1,
+            explain: "53 640 + 8 290 = 61 930."
+        },
+        {
+            question: "Biểu thức tính chu vi hình vuông cạnh a là gì?",
+            options: ["a + 4", "a x 4", "a x a", "(a + 4) x 2"],
+            answer: 1,
+            explain: "Chu vi hình vuông = Độ dài cạnh x 4 (P = a x 4)."
+        },
+        {
+            question: "1 thế kỷ bằng bao nhiêu năm?",
+            options: ["10 năm", "50 năm", "100 năm", "1000 năm"],
+            answer: 2,
+            explain: "1 thế kỷ = 100 năm."
+        }
+    ];
+
+    let currentQ = 0;
+    let score = 0;
+
+    function loadQuestion() {
+        const q = questions[currentQ];
+        document.getElementById('question').innerText = q.question;
+        document.getElementById('level').innerText = currentQ + 1;
+        document.getElementById('feedback').innerText = '';
+        document.getElementById('next-btn').style.display = 'none';
+
+        // Update progress bar
+        const progressPercent = ((currentQ) / questions.length) * 100;
+        document.getElementById('progress').style.width = progressPercent + '%';
+
+        const optionsContainer = document.getElementById('options');
+        optionsContainer.innerHTML = '';
+
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-option';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(index);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selectedIndex) {
+        const q = questions[currentQ];
+        const buttons = document.querySelectorAll('.btn-option');
+        
+        // Disable all buttons
+        buttons.forEach(btn => btn.disabled = true);
+
+        if (selectedIndex === q.answer) {
+            score += 10;
+            document.getElementById('score').innerText = score;
+            document.getElementById('feedback').innerHTML = `<span class="correct">🎉 Chính xác rồi! Bé Thanh Vân giỏi quá!</span><br><small>${q.explain}</small>`;
+            buttons[selectedIndex].style.background = '#2ed573';
+        } else {
+            document.getElementById('feedback').innerHTML = `<span class="wrong">😅 Tiếc quá, chưa đúng rồi!</span><br><small>${q.explain}</small>`;
+            buttons[selectedIndex].style.background = '#ff4757';
+            buttons[q.answer].style.background = '#2ed573';
+        }
+
+        document.getElementById('next-btn').style.display = 'block';
+    }
+
+    function nextQuestion() {
+        currentQ++;
+        if (currentQ < questions.length) {
+            loadQuestion();
+        } else {
+            showFinalResult();
+        }
+    }
+
+    function showFinalResult() {
+        document.getElementById('progress').style.width = '100%';
+        let title = "";
+        if(score === 100) title = "🏆 THÁI TỬ/CÔNG CHÚA TOÁN HỌC XUẤT SẮC!";
+        else if(score >= 70) title = "🌟 HIỆP SĨ TOÁN HỌC TÀI BA!";
+        else title = "🌱 BÉ ĐÃ HOÀN THÀNH HÀNH TRÌNH!";
+
+        document.querySelector('.game-card').innerHTML = `
+            <h1>🎉 HOÀN THÀNH THỬ THÁCH! 🎉</h1>
+            <h2>${title}</h2>
+            <p style="font-size:22px;">Bé Thanh Vân đạt được: <strong style="color:#ff4757;">${score} / 100 điểm</strong></p>
+            <p>Hãy chụp màn hình lại để khoe với Bố/Mẹ nhé!</p>
+            <button class="btn-option" style="width:200px; margin-top:200px;" onclick="location.reload()">Chơi Lại 🔄</button>
+        `;
+    }
+
+    // Chạy trò chơi khi tải trang
+    loadQuestion();
+</script>
+
+</body>
+</html>
