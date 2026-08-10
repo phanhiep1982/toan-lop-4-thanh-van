@@ -5,286 +5,748 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hành Trình Toán Học Của Thanh Vân</title>
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        * { box-sizing: border-box; font-family: 'Nunito', 'Segoe UI', Roboto, sans-serif; }
         body {
-            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            background: linear-gradient(135deg, #a8edd9 0%, #fed6e3 100%);
             min-height: 100vh;
             margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 15px;
         }
         .game-card {
             background: #ffffff;
-            border-radius: 24px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            border-radius: 28px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
             width: 100%;
-            max-width: 700px;
-            padding: 30px;
+            max-width: 740px;
+            padding: 25px;
             text-align: center;
             position: relative;
+            border: 4px solid #fff;
         }
-        h1 { color: #4a154b; margin-top: 0; font-size: 26px; }
-        .welcome-title { color: #ff4757; }
-        .score-board {
-            display: flex;
-            justify-content: space-between;
-            background: #f1f2f6;
-            padding: 12px 20px;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 18px;
-            margin-bottom: 20px;
-            color: #2f3542;
-        }
-        .question-box {
-            background: #eccc68;
-            color: #2f3542;
-            padding: 20px;
-            border-radius: 16px;
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 25px;
-            min-height: 100px;
+        .header-banner {
             display: flex;
             align-items: center;
-            justify-content: center;
-        }
-        .options-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        .btn-option {
-            background: #70a1ff;
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 0 #1e90ff;
-        }
-        .btn-option:hover { background: #1e90ff; transform: translateY(-2px); }
-        .btn-option:active { transform: translateY(2px); box-shadow: none; }
-        .feedback {
-            font-size: 18px;
-            font-weight: bold;
-            min-height: 30px;
+            justify-content: space-between;
+            background: #fff0f5;
+            padding: 12px 20px;
+            border-radius: 20px;
             margin-bottom: 15px;
         }
-        .correct { color: #2ed573; }
-        .wrong { color: #ff4757; }
-        .next-btn {
-            background: #2ed573;
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            font-size: 18px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: bold;
-            display: none;
-            box-shadow: 0 4px 0 #26af5f;
-            margin: 0 auto;
+        .avatar-box { display: flex; align-items: center; gap: 12px; }
+        .mascot-svg { width: 52px; height: 52px; }
+        .player-name { font-weight: 800; color: #ff4757; font-size: 19px; }
+        .level-title { color: #747d8c; font-weight: bold; }
+        .stats-group { display: flex; gap: 10px; align-items: center; }
+        .score-pill {
+            background: #ff7a9e; color: white; padding: 6px 12px; border-radius: 12px;
+            font-weight: 800; font-size: 14px; display: flex; align-items: center; gap: 4px;
+        }
+        .streak-pill {
+            background: #ff9f1a; color: white; padding: 6px 12px; border-radius: 12px;
+            font-weight: 800; font-size: 14px;
+        }
+        .progress-info {
+            display: flex; justify-content: space-between; font-weight: 800;
+            color: #57606f; margin-bottom: 6px; font-size: 14px;
+        }
+        .progress-container {
+            height: 12px; background: #eef2f5; border-radius: 10px; overflow: hidden; margin-bottom: 18px;
         }
         .progress-bar {
-            height: 10px;
-            background: #dfe4ea;
-            border-radius: 5px;
-            overflow: hidden;
-            margin-bottom: 20px;
+            height: 100%; background: linear-gradient(90deg, #2ed573, #7bed9f);
+            width: 0%; transition: width 0.4s ease;
         }
-        .progress-fill {
-            height: 100%;
-            background: #ff6b81;
-            width: 0%;
-            transition: width 0.3s ease;
+        .question-card {
+            background: #f8f9fa; border: 2px dashed #70a1ff; border-radius: 20px;
+            padding: 20px; margin-bottom: 18px; min-height: 160px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
-        .badge {
-            display: inline-block;
-            background: #ffa502;
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 14px;
+        .question-text {
+            font-size: 20px; font-weight: 700; color: #2f3542; margin-bottom: 12px; line-height: 1.5;
+        }
+        .question-text strong { color: #ff4757; font-weight: 900; }
+        .visual-box {
+            width: 100%; max-width: 280px; height: 120px; display: flex;
+            justify-content: center; align-items: center; margin-bottom: 8px;
+        }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+        .btn-opt {
+            background: #ffffff; border: 3px solid #eccc68; color: #2f3542; padding: 14px 10px;
+            border-radius: 16px; font-size: 17px; font-weight: 700; cursor: pointer;
+            transition: all 0.2s ease; box-shadow: 0 5px 0 #eccc68;
+        }
+        .btn-opt:hover:not(:disabled) { background: #ffa502; color: white; border-color: #ffa502; transform: translateY(-2px); }
+        .btn-opt:disabled { cursor: not-allowed; opacity: 0.7; }
+        .feedback-box { font-size: 17px; font-weight: 800; min-height: 50px; margin-top: 8px; line-height: 1.4; }
+        .correct { color: #2ed573; }
+        .wrong { color: #ff4757; }
+        .hint { color: #ffa502; }
+        .btn-next {
+            background: #2ed573; color: white; border: none; padding: 12px 35px;
+            font-size: 18px; font-weight: 800; border-radius: 25px; cursor: pointer;
+            box-shadow: 0 5px 0 #26af5f; display: none; margin: 10px auto 0;
+        }
+        .sound-toggle { position: absolute; top: 12px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal-content {
+            width: min(400px, 100%);
+            box-sizing: border-box;
+            background: #fff;
+            padding: 30px;
+            border-radius: 24px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
 
 <div class="game-card">
-    <span class="badge">Toán Lớp 4 dành cho Bé Thanh Vân 🌟</span>
-    <h1 class="welcome-title">🏰 Vương Quốc Toán Học Kỳ Diệu</h1>
+    <button type="button" class="sound-toggle" id="soundBtn">🔊</button>
     
-    <div class="progress-bar">
-        <div class="progress-fill" id="progress"></div>
+    <div class="header-banner">
+        <div class="avatar-box">
+            <svg class="mascot-svg" viewBox="0 0 100 100">
+                <circle cx="50" cy="55" r="35" fill="#ff7a9e"/>
+                <ellipse cx="35" cy="25" rx="8" ry="20" fill="#ff7a9e"/>
+                <ellipse cx="65" cy="25" rx="8" ry="20" fill="#ff7a9e"/>
+                <ellipse cx="35" cy="25" rx="4" ry="12" fill="#fff"/>
+                <ellipse cx="65" cy="25" rx="4" ry="12" fill="#fff"/>
+                <circle cx="40" cy="50" r="4" fill="#000"/>
+                <circle cx="60" cy="50" r="4" fill="#000"/>
+                <polygon points="50,58 45,63 55,63" fill="#ff4757"/>
+            </svg>
+            <div>
+                <div class="player-name">Bé Thanh Vân</div>
+                <small class="level-title" id="levelTitle">Chặng 1: Tập Sự</small>
+            </div>
+        </div>
+        <div class="stats-group">
+            <div class="streak-pill" id="streakDisplay">🔥 Chuỗi: 0</div>
+            <div class="score-pill">⭐ <span id="scoreDisplay">0</span></div>
+        </div>
     </div>
 
-    <div class="score-board">
-        <div>⭐ Điểm: <span id="score">0</span></div>
-        <div>🏆 Cấp độ: <span id="level">1</span>/10</div>
+    <div class="progress-info">
+        <span id="stageProgressText">Thử thách 1/10</span>
+        <span id="achievementText">🏆 Huy hiệu: 0</span>
+    </div>
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
     </div>
 
-    <div class="question-box" id="question">Đang tải câu hỏi...</div>
-
-    <div class="options-grid" id="options">
-        <!-- Các nút đáp án sẽ được tạo tự động bằng JS -->
+    <div class="question-card">
+        <div class="question-text" id="questionText">Đang khởi tạo câu hỏi...</div>
+        <div class="visual-box" id="visualBox"></div>
     </div>
 
-    <div class="feedback" id="feedback"></div>
-    <button class="next-btn" id="next-btn" onclick="nextQuestion()">Câu Tiếp Theo ➔</button>
+    <div class="options-grid" id="optionsGrid"></div>
+
+    <div class="feedback-box" id="feedbackBox" aria-live="polite"></div>
+    <button type="button" class="btn-next" id="nextBtn">Câu tiếp theo ➔</button>
+</div>
+
+<div class="modal" id="badgeModal">
+    <div class="modal-content">
+        <h2 style="color: #ffa502; margin-top: 0;">🎉 BÉ NHẬN HUY HIỆU MỚI! 🎉</h2>
+        <div style="font-size: 60px;" id="badgeIcon">🏆</div>
+        <h3 id="badgeName" style="color: #2f3542;">Huy hiệu...</h3>
+        <p id="badgeDesc" style="color: #57606f;">Mô tả...</p>
+        <button type="button" class="btn-opt" id="closeModalBtn" style="width: 150px; background: #2ed573; color: white; border: none;">Tuyệt vời!</button>
+    </div>
 </div>
 
 <script>
-    // Ngân hàng câu hỏi bám sát tài liệu Ôn tập Toán 4
-    const questions = [
-        {
-            question: "Trong các số sau, số nào là số chẵn?\n(12 656, 315, 649, 71)",
-            options: ["12 656", "315", "649", "71"],
-            answer: 0,
-            explain: "Số chẵn là số có chữ số tận cùng là 0, 2, 4, 6, 8!"
+    // --- MODULE 1: SOUND & VOICE AUDIO MANAGER ---
+    const AudioMgr = {
+        ctx: null,
+        soundEnabled: true,
+        init() {
+            if (!this.ctx) {
+                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            }
         },
-        {
-            question: "Tính giá trị của biểu thức 2 + a với a = 12?",
-            options: ["10", "12", "14", "24"],
-            answer: 2,
-            explain: "Thay a = 12 vào ta có: 2 + 12 = 14."
+        play(type) {
+            if (!this.soundEnabled) return;
+            this.init();
+            try {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                if (type === 'correct') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523, this.ctx.currentTime);
+                    osc.frequency.setValueAtTime(659, this.ctx.currentTime + 0.1);
+                    osc.frequency.setValueAtTime(783, this.ctx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.4);
+                    osc.start(); osc.stop(this.ctx.currentTime + 0.4);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+                    osc.frequency.setValueAtTime(160, this.ctx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+                    osc.start(); osc.stop(this.ctx.currentTime + 0.3);
+                } else if (type === 'badge') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+                    osc.frequency.setValueAtTime(880, this.ctx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.5);
+                    osc.start(); osc.stop(this.ctx.currentTime + 0.5);
+                }
+            } catch(e) {}
         },
-        {
-            question: "Góc bé hơn góc vuông được gọi là góc gì?",
-            options: ["Góc tù", "Góc nhọn", "Góc bẹt", "Góc vuông"],
-            answer: 1,
-            explain: "Góc nhọn bé hơn góc vuông!"
-        },
-        {
-            question: "Góc bẹt bằng mấy góc vuông?",
-            options: ["1 góc vuông", "2 góc vuông", "3 góc vuông", "4 góc vuông"],
-            answer: 1,
-            explain: "Góc bẹt bằng hai góc vuông (180 độ)."
-        },
-        {
-            question: "Số 514 293 có chữ số 5 thuộc hàng nào, lớp nào?",
-            options: [
-                "Hàng trăm nghìn, Lớp nghìn",
-                "Hàng chục nghìn, Lớp nghìn",
-                "Hàng triệu, Lớp triệu",
-                "Hàng trăm, Lớp đơn vị"
-            ],
-            answer: 0,
-            explain: "Chữ số 5 đứng ở vị trí Hàng trăm nghìn thuộc Lớp nghìn!"
-        },
-        {
-            question: "Làm tròn số 2 712 615 đến hàng trăm nghìn ta được số nào?",
-            options: ["2 600 000", "2 700 000", "2 800 000", "3 000 000"],
-            answer: 1,
-            explain: "Chữ số hàng chục nghìn là 1 (< 5) nên ta làm tròn xuống thành 2 700 000."
-        },
-        {
-            question: "1 tấn bằng bao nhiêu ki-lô-gam (kg)?",
-            options: ["10 kg", "100 kg", "1000 kg", "10000 kg"],
-            answer: 2,
-            explain: "1 tấn = 1 000 kg."
-        },
-        {
-            question: "Kết quả của phép tính: 53 640 + 8 290 là bao nhiêu?",
-            options: ["61 830", "61 930", "51 930", "60 930"],
-            answer: 1,
-            explain: "53 640 + 8 290 = 61 930."
-        },
-        {
-            question: "Biểu thức tính chu vi hình vuông cạnh a là gì?",
-            options: ["a + 4", "a x 4", "a x a", "(a + 4) x 2"],
-            answer: 1,
-            explain: "Chu vi hình vuông = Độ dài cạnh x 4 (P = a x 4)."
-        },
-        {
-            question: "1 thế kỷ bằng bao nhiêu năm?",
-            options: ["10 năm", "50 năm", "100 năm", "1000 năm"],
-            answer: 2,
-            explain: "1 thế kỷ = 100 năm."
+        speak(text) {
+            if (!this.soundEnabled || !('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'vi-VN'; u.rate = 1.0;
+            window.speechSynthesis.speak(u);
         }
-    ];
+    };
 
-    let currentQ = 0;
-    let score = 0;
+    function toggleSound() {
+        AudioMgr.soundEnabled = !AudioMgr.soundEnabled;
+        document.getElementById('soundBtn').innerText = AudioMgr.soundEnabled ? '🔊' : '🔇';
+    }
 
-    function loadQuestion() {
-        const q = questions[currentQ];
-        document.getElementById('question').innerText = q.question;
-        document.getElementById('level').innerText = currentQ + 1;
-        document.getElementById('feedback').innerText = '';
-        document.getElementById('next-btn').style.display = 'none';
+    function parseMarkdown(text) {
+        return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    }
 
-        // Update progress bar
-        const progressPercent = ((currentQ) / questions.length) * 100;
-        document.getElementById('progress').style.width = progressPercent + '%';
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
 
-        const optionsContainer = document.getElementById('options');
-        optionsContainer.innerHTML = '';
+    // --- MODULE 2: GAME STATE & BADGES QUEUE ---
+    const GameState = {
+        score: 0,
+        streak: 0,
+        stage: 1,
+        questionInStage: 1,
+        maxStageQuestions: 10,
+        triesLeft: 2,
+        currentQ: null,
+        badges: new Set(),
+        badgeQueue: [],
+        
+        resetTries() { this.triesLeft = 2; }
+    };
 
-        q.options.forEach((opt, index) => {
+    const BadgesList = {
+        'FIRST_WIN': { name: 'Khởi Đầu May Mắn', icon: '🌱', desc: 'Đã hoàn thành câu hỏi đầu tiên!' },
+        'STREAK_3': { name: 'Siêu Bứt Phá', icon: '🔥', desc: 'Đạt chuỗi 3 câu trả lời đúng liên tiếp!' },
+        'STREAK_5': { name: 'Bậc Thầy Toán Học', icon: '⚡', desc: 'Đạt chuỗi 5 câu trả lời đúng liên tiếp!' },
+        'ANGLE_MASTER': { name: 'Thần Đồng Đo Góc', icon: '📐', desc: 'Trả lời chính xác câu hỏi về góc!' },
+        'SCORE_100': { name: 'Hiệp Sĩ Toán Học', icon: '🏆', desc: 'Đạt mốc 100 điểm thưởng!' }
+    };
+
+    function checkBadges(type) {
+        const newlyUnlocked = [];
+        if (type === 'FIRST_WIN' && !GameState.badges.has('FIRST_WIN')) newlyUnlocked.push('FIRST_WIN');
+        if (GameState.streak >= 3 && !GameState.badges.has('STREAK_3')) newlyUnlocked.push('STREAK_3');
+        if (GameState.streak >= 5 && !GameState.badges.has('STREAK_5')) newlyUnlocked.push('STREAK_5');
+        if (type === 'ANGLE' && !GameState.badges.has('ANGLE_MASTER')) newlyUnlocked.push('ANGLE_MASTER');
+        if (GameState.score >= 100 && !GameState.badges.has('SCORE_100')) newlyUnlocked.push('SCORE_100');
+
+        newlyUnlocked.forEach(bKey => {
+            GameState.badges.add(bKey);
+            GameState.badgeQueue.push(BadgesList[bKey]);
+        });
+
+        processBadgeQueue();
+    }
+
+    function processBadgeQueue() {
+        const modal = document.getElementById('badgeModal');
+        if (modal.style.display === 'flex' || GameState.badgeQueue.length === 0) return;
+
+        const badge = GameState.badgeQueue.shift();
+        AudioMgr.play('badge');
+        document.getElementById('badgeIcon').innerText = badge.icon;
+        document.getElementById('badgeName').innerText = badge.name;
+        document.getElementById('badgeDesc').innerText = badge.desc;
+        document.getElementById('badgeModal').style.display = 'flex';
+        document.getElementById('achievementText').innerText = `🏆 Huy hiệu: ${GameState.badges.size}`;
+    }
+
+    function closeModal() {
+        document.getElementById('badgeModal').style.display = 'none';
+        setTimeout(processBadgeQueue, 200);
+    }
+
+    // --- MODULE 3: QUESTION ENGINES WITH STAGE PROGRESSION ---
+    const QuestionEngines = {
+        // 1. Góc
+        ANGLE(stage) {
+            const angles = [
+                { type: 'Góc nhọn', deg: 45, desc: 'góc bé hơn góc vuông' },
+                { type: 'Góc vuông', deg: 90, desc: 'góc bằng 90 độ' },
+                { type: 'Góc tù', deg: 120, desc: 'góc lớn hơn góc vuông' },
+                { type: 'Góc bẹt', deg: 180, desc: 'góc bằng hai góc vuông' }
+            ];
+            const target = angles[Math.floor(Math.random() * angles.length)];
+            const rad = (180 - target.deg) * Math.PI / 180;
+            const x2 = 140 + 70 * Math.cos(rad);
+            const y2 = 100 - 70 * Math.sin(rad);
+
+            return {
+                typeCategory: 'ANGLE',
+                qText: `Góc đỉnh O dưới đây là loại góc nào?`,
+                visualHtml: `<svg width="260" height="110" viewBox="0 0 260 110">
+                    <path d="M 60 100 L 140 100 L ${x2} ${y2}" stroke="#ff4757" stroke-width="5" fill="none" stroke-linecap="round"/>
+                    <circle cx="140" cy="100" r="5" fill="#2f3542"/>
+                    <text x="140" y="110" font-weight="bold" text-anchor="middle" fill="#747d8c">O</text>
+                </svg>`,
+                options: ['Góc nhọn', 'Góc vuông', 'Góc tù', 'Góc bẹt'],
+                correctAnswer: target.type,
+                hint: `So sánh góc này với góc vuông 90° bé hơn hay lớn hơn nhé!`,
+                explain: `Đây là **${target.type}** (${target.desc}).`
+            };
+        },
+
+        // 2. Số chẵn / Số lẻ
+        EVEN_ODD(stage) {
+            const isEven = Math.random() > 0.5;
+            const label = isEven ? 'SỐ CHẤN' : 'SỐ LẺ';
+            const baseMax = stage > 2 ? 800000 : 80000;
+            let targetNum = Math.floor(Math.random() * baseMax) + 10000;
+            targetNum = isEven ? (targetNum % 2 === 0 ? targetNum : targetNum + 1) : (targetNum % 2 !== 0 ? targetNum : targetNum + 1);
+
+            let d1 = targetNum + 1, d2 = targetNum + 3, d3 = targetNum + 5;
+            if (isEven) { d1 = d1 % 2 !== 0 ? d1 : d1 + 1; d2 = d2 % 2 !== 0 ? d2 : d2 + 1; d3 = d3 % 2 !== 0 ? d3 : d3 + 1; }
+            else { d1 = d1 % 2 === 0 ? d1 : d1 + 1; d2 = d2 % 2 === 0 ? d2 : d2 + 1; d3 = d3 % 2 === 0 ? d3 : d3 + 1; }
+
+            const correctStr = targetNum.toLocaleString('vi-VN');
+            const opts = [targetNum, d1, d2, d3].map(n => n.toLocaleString('vi-VN'));
+
+            return {
+                typeCategory: 'EVEN_ODD',
+                qText: `Bé hãy tìm đâu là **${label}** trong các số sau?`,
+                visualHtml: `<div style="font-size:45px;">🔢💡</div>`,
+                options: opts,
+                correctAnswer: correctStr,
+                hint: isEven ? `Số chẵn có chữ số tận cùng là 0, 2, 4, 6, 8.` : `Số lẻ có chữ số tận cùng là 1, 3, 5, 7, 9.`,
+                explain: `Số **${correctStr}** có chữ số tận cùng là ${targetNum % 10} nên là ${label.toLowerCase()}.`
+            };
+        },
+
+        // 3. Làm tròn số chuẩn sư phạm
+        ROUNDING(stage) {
+            const hundredThousandDigit = Math.floor(Math.random() * 8) + 1;
+            const tenThousandDigit = Math.floor(Math.random() * 9);
+            const num = hundredThousandDigit * 100000 + tenThousandDigit * 10000 + Math.floor(Math.random() * 9000) + 1000;
+
+            const correctVal = Math.round(num / 100000) * 100000;
+            let d1 = (hundredThousandDigit + 1) * 100000;
+            let d2 = (hundredThousandDigit - 1 > 0 ? hundredThousandDigit - 1 : hundredThousandDigit + 2) * 100000;
+            let d3 = Math.round(num / 10000) * 10000;
+
+            if (d1 === correctVal) d1 += 100000;
+            if (d2 === correctVal) d2 += 200000;
+            if (d3 === correctVal) d3 += 10000;
+
+            const correctStr = correctVal.toLocaleString('vi-VN');
+            const opts = [correctVal, d1, d2, d3].map(n => n.toLocaleString('vi-VN'));
+
+            return {
+                typeCategory: 'ROUNDING',
+                qText: `Làm tròn số **${num.toLocaleString('vi-VN')}** đến hàng trăm nghìn ta được:`,
+                visualHtml: `<div style="font-size:45px;">🎯🎯</div>`,
+                options: opts,
+                correctAnswer: correctStr,
+                hint: `Nhìn vào chữ số hàng chục nghìn (${tenThousandDigit}). Nếu từ 5 trở lên thì làm tròn lên nhé!`,
+                explain: `Chữ số hàng chục nghìn là ${tenThousandDigit} (${tenThousandDigit >= 5 ? '≥ 5 làm tròn lên' : '< 5 làm tròn xuống'}), ta được **${correctStr}**.`
+            };
+        },
+
+        // 4. Hàng và Lớp
+        PLACE_CLASS(stage) {
+            const baseMultiplier = stage > 1 ? 89999999 : 899999;
+            const baseMin = stage > 1 ? 1000000 : 100000;
+            const num = Math.floor(Math.random() * baseMultiplier) + baseMin;
+            const numStr = num.toString();
+            
+            const idx = Math.floor(Math.random() * numStr.length);
+            const targetDigit = numStr[idx];
+
+            const placeNames = ['đơn vị', 'chục', 'trăm', 'nghìn', 'chục nghìn', 'trăm nghìn', 'triệu', 'chục triệu'];
+            const classNames = ['Lớp đơn vị', 'Lớp đơn vị', 'Lớp đơn vị', 'Lớp nghìn', 'Lớp nghìn', 'Lớp nghìn', 'Lớp triệu', 'Lớp triệu'];
+
+            const revIdx = numStr.length - 1 - idx;
+            const correctClass = classNames[revIdx];
+
+            return {
+                typeCategory: 'PLACE_CLASS',
+                qText: `Trong số **${num.toLocaleString('vi-VN')}**, chữ số **${targetDigit}** thuộc lớp nào?`,
+                visualHtml: `<div style="font-size:45px;">🏰🧮</div>`,
+                options: ['Lớp đơn vị', 'Lớp nghìn', 'Lớp triệu', 'Lớp tỷ'],
+                correctAnswer: correctClass,
+                hint: `3 chữ số đầu tiên từ phải sang thuộc Lớp đơn vị, 3 chữ số tiếp theo thuộc Lớp nghìn, tiếp nữa là Lớp triệu!`,
+                explain: `Chữ số **${targetDigit}** thuộc hàng ${placeNames[revIdx]} nên nằm trong **${correctClass}**.`
+            };
+        },
+
+        // 5. Giá trị chữ số
+        DIGIT_VALUE(stage) {
+            const num = Math.floor(Math.random() * 899999) + 100000;
+            const numStr = num.toString();
+            
+            let idx = Math.floor(Math.random() * numStr.length);
+            while (parseInt(numStr[idx]) === 0) {
+                idx = Math.floor(Math.random() * numStr.length);
+            }
+            const digit = parseInt(numStr[idx]);
+            const placeValue = Math.pow(10, numStr.length - 1 - idx);
+            const correctVal = digit * placeValue;
+
+            const wrong1 = digit * (placeValue >= 100000 ? 10000 : placeValue * 10);
+            const wrong2 = digit * (placeValue <= 10 ? 100 : Math.floor(placeValue / 10));
+            const wrong3 = digit;
+
+            const correctStr = correctVal.toLocaleString('vi-VN');
+            const opts = [correctVal, wrong1, wrong2, wrong3].map(n => n.toLocaleString('vi-VN'));
+
+            return {
+                typeCategory: 'DIGIT_VALUE',
+                qText: `Chữ số **${digit}** trong số **${num.toLocaleString('vi-VN')}** có giá trị là bao nhiêu?`,
+                visualHtml: `<div style="font-size:45px;">💎✨</div>`,
+                options: opts,
+                correctAnswer: correctStr,
+                hint: `Xác định chữ số ${digit} đứng ở hàng nào rồi nhân với giá trị của hàng đó!`,
+                explain: `Chữ số ${digit} thuộc hàng ${placeValue.toLocaleString('vi-VN')} nên có giá trị là **${correctStr}**.`
+            };
+        },
+
+        // 6. Biểu thức
+        EXPRESSION(stage) {
+            const mode = stage === 1 ? Math.floor(Math.random() * 2) : Math.floor(Math.random() * 3);
+            let qText = '', val = 0, hint = '';
+
+            if (mode === 0) {
+                const a = Math.floor(Math.random() * 50) + 10;
+                const b = Math.floor(Math.random() * 10) + 2;
+                const c = Math.floor(Math.random() * 9) + 2;
+                val = a + b * c;
+                qText = `Tính giá trị của biểu thức: **${a} + ${b} × ${c}**`;
+                hint = `Thực hiện phép tính nhân trước, sau đó mới thực hiện phép cộng!`;
+            } else if (mode === 1) {
+                const a = Math.floor(Math.random() * 30) + 10;
+                const b = Math.floor(Math.random() * 20) + 5;
+                const c = Math.floor(Math.random() * 5) + 2;
+                val = (a + b) * c;
+                qText = `Tính giá trị của biểu thức: **(${a} + ${b}) × ${c}**`;
+                hint = `Thực hiện phép tính trong ngoặc () trước nhé!`;
+            } else {
+                const x = Math.floor(Math.random() * 8) + 2;
+                val = 150 - x * 10;
+                qText = `Giá trị của biểu thức **150 - x × 10** với **x = ${x}** là:`;
+                hint = `Thay x = ${x} vào biểu thức rồi tính nhân trước, trừ sau!`;
+            }
+
+            const correctStr = val.toString();
+            const opts = [val, val + 10, val - 5, val + 20].map(n => n.toString());
+
+            return {
+                typeCategory: 'EXPRESSION',
+                qText: qText,
+                visualHtml: `<div style="font-size:45px;">📝📘</div>`,
+                options: opts,
+                correctAnswer: correctStr,
+                hint: hint,
+                explain: `Kết quả chính xác của biểu thức là **${correctStr}**.`
+            };
+        },
+
+        // 7. Đổi đơn vị
+        UNIT(stage) {
+            const units = [
+                { q: "3 tấn 50 kg = ... kg?", a: "3 050 kg", opts: ["3 050 kg", "3 500 kg", "350 kg", "3 005 kg"], hint: "1 tấn = 1000 kg" },
+                { q: "2 m² 15 dm² = ... dm²?", a: "215 dm²", opts: ["215 dm²", "2 015 dm²", "2 150 dm²", "250 dm²"], hint: "1 m² = 100 dm²" },
+                { q: "5 phút 20 giây = ... giây?", a: "320 giây", opts: ["320 giây", "520 giây", "300 giây", "250 giây"], hint: "1 phút = 60 giây" },
+                { q: "2 thế kỷ = ... năm?", a: "200 năm", opts: ["200 năm", "20 năm", "2 000 năm", "100 năm"], hint: "1 thế kỷ = 100 năm" }
+            ];
+            const u = units[Math.floor(Math.random() * units.length)];
+
+            return {
+                typeCategory: 'UNIT',
+                qText: `Bé hãy đổi đơn vị sau: **${u.q}**`,
+                visualHtml: `<div style="font-size:45px;">⚖️⌛</div>`,
+                options: u.opts,
+                correctAnswer: u.a,
+                hint: u.hint,
+                explain: `Đổi chính xác: **${u.a}**.`
+            };
+        },
+
+        // 8. So sánh số
+        COMPARE(stage) {
+            const place = Math.pow(10, Math.floor(Math.random() * 4) + 1);
+            const prefix = Math.floor(Math.random() * 80) + 10;
+            const digitA = Math.floor(Math.random() * 8) + 1;
+            let digitB = Math.floor(Math.random() * 8) + 1;
+            if (digitA === digitB) digitB = (digitA % 8) + 1;
+
+            const baseA = prefix * 100000 + digitA * place + Math.floor(Math.random() * (place - 1));
+            const baseB = prefix * 100000 + digitB * place + Math.floor(Math.random() * (place - 1));
+
+            let symbol = '=';
+            if (baseA > baseB) symbol = '>';
+            else if (baseA < baseB) symbol = '<';
+
+            return {
+                typeCategory: 'COMPARE',
+                qText: `So sánh hai số: **${baseA.toLocaleString('vi-VN')} ... ${baseB.toLocaleString('vi-VN')}**`,
+                visualHtml: `<div style="font-size:45px;">⚖️🔍</div>`,
+                options: ['>', '<', '='],
+                correctAnswer: symbol,
+                hint: `So sánh các chữ số từ trái sang phải ở từng hàng tương ứng!`,
+                explain: `Vì ${baseA.toLocaleString('vi-VN')} **${symbol}** ${baseB.toLocaleString('vi-VN')}.`
+            };
+        },
+
+        // 9. Toán có lời văn
+        WORD_PROBLEM(stage) {
+            const priceBook = (Math.floor(Math.random() * 4) + 6) * 1000;
+            const pricePen = (Math.floor(Math.random() * 3) + 3) * 1000;
+            const numBooks = Math.floor(Math.random() * 3) + 2;
+            const numPens = Math.floor(Math.random() * 3) + 2;
+            const total = numBooks * priceBook + numPens * pricePen;
+            const correctStr = total.toLocaleString('vi-VN') + ' đ';
+
+            return {
+                typeCategory: 'WORD_PROBLEM',
+                qText: `Mai mua **${numBooks}** quyển vở (giá ${priceBook.toLocaleString('vi-VN')} đ/quyển) và **${numPens}** cái bút (giá ${pricePen.toLocaleString('vi-VN')} đ/cái). Hỏi Mai phải trả tất cả bao nhiêu tiền?`,
+                visualHtml: `<div style="font-size:45px;">📚🛒</div>`,
+                options: [
+                    correctStr,
+                    (total - 3000).toLocaleString('vi-VN') + ' đ',
+                    (total + 5000).toLocaleString('vi-VN') + ' đ',
+                    (numBooks * priceBook).toLocaleString('vi-VN') + ' đ'
+                ],
+                correctAnswer: correctStr,
+                hint: `Bước 1: Tính tiền vở. Bước 2: Tính tiền bút. Bước 3: Cộng lại!`,
+                explain: `Tiền vở: ${(numBooks*priceBook).toLocaleString('vi-VN')}đ. Tiền bút: ${(numPens*pricePen).toLocaleString('vi-VN')}đ. Tổng cộng: **${correctStr}**.`
+            };
+        },
+
+        // 10. Hình học
+        GEOMETRY(stage) {
+            const isSquare = Math.random() > 0.5;
+            if (isSquare) {
+                const a = Math.floor(Math.random() * 8) + 3;
+                const p = a * 4;
+                const correctStr = `${p} cm`;
+
+                return {
+                    typeCategory: 'GEOMETRY',
+                    qText: `Hình vuông có cạnh **a = ${a} cm**. Chu vi P của hình vuông đó là:`,
+                    visualHtml: `<svg width="100" height="100" viewBox="0 0 100 100">
+                        <rect x="15" y="15" width="70" height="70" stroke="#70a1ff" stroke-width="4" fill="#eccc68"/>
+                        <text x="50" y="55" font-weight="bold" text-anchor="middle" fill="#2f3542">${a} cm</text>
+                    </svg>`,
+                    options: [correctStr, `${a * a} cm`, `${p + 4} cm`, `${a * 2} cm`],
+                    correctAnswer: correctStr,
+                    hint: `Công thức chu vi hình vuông: P = a × 4`,
+                    explain: `Chu vi hình vuông = ${a} × 4 = **${correctStr}**.`
+                };
+            } else {
+                const a = Math.floor(Math.random() * 8) + 6;
+                const b = Math.floor(Math.random() * 4) + 2;
+                const p = (a + b) * 2;
+                const correctStr = `${p} cm`;
+
+                return {
+                    typeCategory: 'GEOMETRY',
+                    qText: `Hình chữ nhật có chiều dài **a = ${a} cm**, chiều rộng **b = ${b} cm**. Chu vi P là:`,
+                    visualHtml: `<svg width="120" height="80" viewBox="0 0 120 80">
+                        <rect x="10" y="15" width="100" height="50" stroke="#ff4757" stroke-width="4" fill="#7bed9f"/>
+                        <text x="60" y="45" font-weight="bold" text-anchor="middle" fill="#2f3542">${a}x${b}</text>
+                    </svg>`,
+                    options: [correctStr, `${a * b} cm`, `${a + b} cm`, `${(a + b) * 4} cm`],
+                    correctAnswer: correctStr,
+                    hint: `Công thức chu vi hình chữ nhật: P = (a + b) × 2`,
+                    explain: `Chu vi hình chữ nhật = (${a} + ${b}) × 2 = **${correctStr}**.`
+                };
+            }
+        }
+    };
+
+    // --- MODULE 4: QUESTION VALIDATOR & SAFE GENERATOR ---
+    function validateQuestion(q) {
+        return (
+            q &&
+            q.correctAnswer != null &&
+            Array.isArray(q.options) &&
+            (q.options.length === 4 || q.typeCategory === 'COMPARE') &&
+            new Set(q.options).size === q.options.length &&
+            q.options.includes(q.correctAnswer)
+        );
+    }
+
+    function getRandomQuestion() {
+        const keys = Object.keys(QuestionEngines);
+        let attempts = 0;
+
+        while (attempts < 50) {
+            attempts++;
+            const engineKey = keys[Math.floor(Math.random() * keys.length)];
+            const rawQ = QuestionEngines[engineKey](GameState.stage);
+
+            let uniqueOpts = Array.from(new Set(rawQ.options));
+            shuffle(uniqueOpts);
+
+            const finalQ = {
+                typeCategory: rawQ.typeCategory,
+                qText: rawQ.qText,
+                visualHtml: rawQ.visualHtml,
+                options: uniqueOpts,
+                correctAnswer: rawQ.correctAnswer,
+                correctIdx: uniqueOpts.indexOf(rawQ.correctAnswer),
+                hint: rawQ.hint,
+                explain: rawQ.explain
+            };
+
+            if (validateQuestion(finalQ)) {
+                return finalQ;
+            }
+        }
+        console.error("Failed to generate a valid question after 50 attempts.");
+    }
+
+    // --- MODULE 5: GAME ENGINE & UI RENDERER ---
+    function renderQuestion() {
+        GameState.resetTries();
+        GameState.currentQ = getRandomQuestion();
+        const q = GameState.currentQ;
+
+        document.getElementById('stageProgressText').innerText = `Thử thách ${GameState.questionInStage}/${GameState.maxStageQuestions}`;
+        document.getElementById('progressBar').style.width = ((GameState.questionInStage / GameState.maxStageQuestions) * 100) + '%';
+        document.getElementById('streakDisplay').innerText = `🔥 Chuỗi: ${GameState.streak}`;
+        document.getElementById('scoreDisplay').innerText = GameState.score;
+
+        document.getElementById('questionText').innerHTML = parseMarkdown(q.qText);
+
+        const visualBox = document.getElementById('visualBox');
+        if (q.visualHtml && q.visualHtml.trim() !== '') {
+            visualBox.innerHTML = q.visualHtml;
+            visualBox.style.display = 'flex';
+        } else {
+            visualBox.innerHTML = '';
+            visualBox.style.display = 'none';
+        }
+
+        document.getElementById('feedbackBox').innerHTML = '';
+        document.getElementById('nextBtn').style.display = 'none';
+
+        const grid = document.getElementById('optionsGrid');
+        grid.innerHTML = '';
+
+        q.options.forEach((opt, idx) => {
             const btn = document.createElement('button');
-            btn.className = 'btn-option';
-            btn.innerText = opt;
-            btn.onclick = () => checkAnswer(index);
-            optionsContainer.appendChild(btn);
+            btn.type = 'button';
+            btn.className = 'btn-opt';
+            btn.innerHTML = parseMarkdown(opt);
+            btn.onclick = () => handleAnswer(idx);
+            grid.appendChild(btn);
         });
     }
 
-    function checkAnswer(selectedIndex) {
-        const q = questions[currentQ];
-        const buttons = document.querySelectorAll('.btn-option');
-        
-        // Disable all buttons
-        buttons.forEach(btn => btn.disabled = true);
+    function handleAnswer(selectedIdx) {
+        const q = GameState.currentQ;
+        const btns = document.querySelectorAll('.btn-opt');
+        const feedback = document.getElementById('feedbackBox');
 
-        if (selectedIndex === q.answer) {
-            score += 10;
-            document.getElementById('score').innerText = score;
-            document.getElementById('feedback').innerHTML = `<span class="correct">🎉 Chính xác rồi! Bé Thanh Vân giỏi quá!</span><br><small>${q.explain}</small>`;
-            buttons[selectedIndex].style.background = '#2ed573';
+        if (selectedIdx === q.correctIdx) {
+            AudioMgr.play('correct');
+            btns[selectedIdx].style.background = '#2ed573';
+            btns[selectedIdx].style.color = 'white';
+            btns[selectedIdx].style.borderColor = '#2ed573';
+            btns.forEach(b => b.disabled = true);
+
+            GameState.streak++;
+            let bonus = 10;
+            if (GameState.streak >= 5) bonus += 10;
+            else if (GameState.streak >= 3) bonus += 5;
+
+            if (GameState.triesLeft === 1) bonus = 5;
+
+            GameState.score += bonus;
+            document.getElementById('scoreDisplay').innerText = GameState.score;
+            document.getElementById('streakDisplay').innerText = `🔥 Chuỗi: ${GameState.streak}`;
+
+            feedback.innerHTML = `<span class="correct">🎉 Chính xác! (+${bonus} điểm)</span><br><small>${parseMarkdown(q.explain)}</small>`;
+            AudioMgr.speak("Bé Thanh Vân giỏi quá, chính xác rồi!");
+
+            checkBadges(q.typeCategory);
+            checkBadges('FIRST_WIN');
+
+            document.getElementById('nextBtn').style.display = 'block';
+
         } else {
-            document.getElementById('feedback').innerHTML = `<span class="wrong">😅 Tiếc quá, chưa đúng rồi!</span><br><small>${q.explain}</small>`;
-            buttons[selectedIndex].style.background = '#ff4757';
-            buttons[q.answer].style.background = '#2ed573';
-        }
+            AudioMgr.play('wrong');
+            btns[selectedIdx].disabled = true;
+            btns[selectedIdx].style.background = '#ff4757';
+            btns[selectedIdx].style.color = 'white';
 
-        document.getElementById('next-btn').style.display = 'block';
+            if (GameState.triesLeft === 2) {
+                GameState.triesLeft = 1;
+                feedback.innerHTML = `<span class="hint">💡 Chưa đúng rồi! Hãy suy nghĩ lại nhé.</span><br><small style="color:#2f3542">Gợi ý: ${parseMarkdown(q.hint)}</small>`;
+                AudioMgr.speak("Chưa đúng rồi, bé thử lại một lần nữa nhé!");
+
+            } else {
+                GameState.streak = 0;
+                document.getElementById('streakDisplay').innerText = `🔥 Chuỗi: 0`;
+                btns.forEach(b => b.disabled = true);
+                
+                btns[q.correctIdx].style.background = '#2ed573';
+                btns[q.correctIdx].style.color = 'white';
+
+                feedback.innerHTML = `<span class="wrong">😅 Hết lượt thử! Đáp án đúng là nút xanh.</span><br><small>${parseMarkdown(q.explain)}</small>`;
+                document.getElementById('nextBtn').style.display = 'block';
+            }
+        }
     }
 
     function nextQuestion() {
-        currentQ++;
-        if (currentQ < questions.length) {
-            loadQuestion();
+        if (GameState.questionInStage < GameState.maxStageQuestions) {
+            GameState.questionInStage++;
         } else {
-            showFinalResult();
+            GameState.stage++;
+            GameState.questionInStage = 1;
+            document.getElementById('levelTitle').innerText = `Chặng ${GameState.stage}: ${GameState.stage === 2 ? 'Hiệp Sĩ' : 'Bậc Thầy'}`;
+            alert(`🎉 CHÚC MỪNG BÉ THANH VÂN HOÀN THÀNH CHẶNG ${GameState.stage - 1}! SẴN SÀNG CHO CHẶNG ${GameState.stage} NHÉ!`);
         }
+        renderQuestion();
     }
 
-    function showFinalResult() {
-        document.getElementById('progress').style.width = '100%';
-        let title = "";
-        if(score === 100) title = "🏆 THÁI TỬ/CÔNG CHÚA TOÁN HỌC XUẤT SẮC!";
-        else if(score >= 70) title = "🌟 HIỆP SĨ TOÁN HỌC TÀI BA!";
-        else title = "🌱 BÉ ĐÃ HOÀN THÀNH HÀNH TRÌNH!";
+    // Tách Event Listeners khỏi HTML inline attributes
+    document.getElementById('nextBtn').addEventListener('click', nextQuestion);
+    document.getElementById('soundBtn').addEventListener('click', toggleSound);
+    document.getElementById('closeModalBtn').addEventListener('click', closeModal);
 
-        document.querySelector('.game-card').innerHTML = `
-            <h1>🎉 HOÀN THÀNH THỬ THÁCH! 🎉</h1>
-            <h2>${title}</h2>
-            <p style="font-size:22px;">Bé Thanh Vân đạt được: <strong style="color:#ff4757;">${score} / 100 điểm</strong></p>
-            <p>Hãy chụp màn hình lại để khoe với Bố/Mẹ nhé!</p>
-            <button class="btn-option" style="width:200px; margin-top:200px;" onclick="location.reload()">Chơi Lại 🔄</button>
-        `;
-    }
-
-    // Chạy trò chơi khi tải trang
-    loadQuestion();
+    renderQuestion();
 </script>
-
 </body>
 </html>
