@@ -105,6 +105,8 @@
         }
         .modal-content {
             width: min(420px, 100%);
+            max-height: 90vh;
+            overflow-y: auto;
             box-sizing: border-box;
             background: #fff;
             padding: 25px 20px;
@@ -124,6 +126,12 @@
             cursor: pointer;
             box-shadow: 0 4px 0 #26af5f;
             margin-top: 15px;
+            transition: all 0.1s ease;
+        }
+        .btn-modal:hover { transform: translateY(-2px); }
+        .btn-modal:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #26af5f;
         }
     </style>
 </head>
@@ -154,7 +162,7 @@
         </div>
         <div class="stats-group">
             <div class="streak-pill" id="streakDisplay">🔥 Chuỗi: 0</div>
-            <div class="score-pill">⭐ <span id="scoreDisplay">0</span></div>
+            <div class="score-pill">⭐ Điểm: <span id="scoreDisplay">0</span></div>
         </div>
     </div>
 
@@ -199,7 +207,7 @@
 </div>
 
 <script>
-    // --- MODULE 1: AUDIO & VOICE MANAGER (TÁCH BIỆT BẬT/TẮT NHẠC VÀ GIỌNG NÓI) ---
+    // --- MODULE 1: AUDIO & VOICE MANAGER (TTS TIẾNG VIỆT TOÀN DIỆN) ---
     const AudioMgr = {
         ctx: null,
         soundEnabled: true,
@@ -213,14 +221,14 @@
             this.refreshVoices();
         },
 
-        // Quét và chọn chính xác Voice Object Tiếng Việt
         refreshVoices() {
             if (!('speechSynthesis' in window)) return;
             const voices = window.speechSynthesis.getVoices();
 
             this.vietnameseVoice =
                 voices.find(v => v.lang.toLowerCase() === 'vi-vn') ||
-                voices.find(v => v.lang.toLowerCase().startsWith('vi')) || null;
+                voices.find(v => v.lang.toLowerCase().startsWith('vi')) ||
+                voices.find(v => v.name.toLowerCase().includes('vietnam')) || null;
         },
 
         play(type) {
@@ -260,30 +268,29 @@
 
         speak(text) {
             if (!this.voiceEnabled || !('speechSynthesis' in window)) return;
-            window.speechSynthesis.cancel(); // Dừng câu trước ngay lập tức
+            window.speechSynthesis.cancel();
 
             if (!this.vietnameseVoice) this.refreshVoices();
 
             const u = new SpeechSynthesisUtterance(text);
             u.lang = 'vi-VN';
-            u.rate = 0.9;   // Tốc độ đọc 0.9 phù hợp với trẻ em
-            u.pitch = 1.05; // Tần số giọng nhẹ nhàng
+            u.rate = 0.9;
+            u.pitch = 1.05;
 
             if (this.vietnameseVoice) {
-                u.voice = this.vietnameseVoice; // Gán đúng giọng Tiếng Việt
+                u.voice = this.vietnameseVoice;
             }
 
             window.speechSynthesis.speak(u);
         }
     };
 
-    // Lắng nghe sự kiện nạp giọng đọc bất đồng bộ của trình duyệt
     if ('speechSynthesis' in window) {
         AudioMgr.refreshVoices();
+        window.speechSynthesis.onvoiceschanged = () => AudioMgr.refreshVoices();
         window.speechSynthesis.addEventListener('voiceschanged', () => AudioMgr.refreshVoices());
     }
 
-    // Hàm hỗ trợ kiểm tra các giọng đọc Tiếng Việt trong Console
     window.checkVietnameseVoices = function() {
         if (!('speechSynthesis' in window)) {
             console.warn("Trình duyệt không hỗ trợ Web Speech API.");
@@ -381,7 +388,7 @@
         setTimeout(processBadgeQueue, 200);
     }
 
-    // --- MODULE 3: QUESTION ENGINES WITH UNIFIED DIFFICULTY SCALING ---
+    // --- MODULE 3: QUESTION ENGINES ---
     const QuestionEngines = {
         // 1. Góc
         ANGLE(stage) {
@@ -984,6 +991,7 @@
         }
     }
 
+    // Gán sự kiện tĩnh (EventListeners) cho các nút bấm
     document.getElementById('nextBtn').addEventListener('click', nextQuestion);
     document.getElementById('soundBtn').addEventListener('click', toggleSound);
     document.getElementById('voiceBtn').addEventListener('click', toggleVoice);
