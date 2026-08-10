@@ -69,7 +69,7 @@
         }
         .question-text strong { color: #ff4757; font-weight: 900; }
         .visual-box {
-            width: 100%; max-width: 280px; height: 120px; display: flex;
+            width: 100%; max-width: 320px; height: 120px; display: flex;
             justify-content: center; align-items: center; margin-bottom: 8px;
         }
         .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
@@ -97,18 +97,32 @@
             inset: 0;
             padding: 20px;
             box-sizing: border-box;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.55);
             justify-content: center;
             align-items: center;
-            z-index: 100;
+            z-index: 300;
         }
         .modal-content {
-            width: min(400px, 100%);
+            width: min(420px, 100%);
             box-sizing: border-box;
             background: #fff;
-            padding: 30px;
+            padding: 25px 20px;
             border-radius: 24px;
             text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .btn-modal {
+            width: 180px;
+            background: #2ed573;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 16px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #26af5f;
+            margin-top: 15px;
         }
     </style>
 </head>
@@ -159,13 +173,24 @@
     <button type="button" class="btn-next" id="nextBtn">Câu tiếp theo ➔</button>
 </div>
 
+<!-- Modal Huy Hiệu -->
 <div class="modal" id="badgeModal">
     <div class="modal-content">
         <h2 style="color: #ffa502; margin-top: 0;">🎉 BÉ NHẬN HUY HIỆU MỚI! 🎉</h2>
         <div style="font-size: 60px;" id="badgeIcon">🏆</div>
         <h3 id="badgeName" style="color: #2f3542;">Huy hiệu...</h3>
         <p id="badgeDesc" style="color: #57606f;">Mô tả...</p>
-        <button type="button" class="btn-opt" id="closeModalBtn" style="width: 150px; background: #2ed573; color: white; border: none;">Tuyệt vời!</button>
+        <button type="button" class="btn-modal" id="closeBadgeBtn">Tuyệt vời!</button>
+    </div>
+</div>
+
+<!-- Modal Tổng Kết Chặng -->
+<div class="modal" id="stageModal">
+    <div class="modal-content">
+        <h2 id="stageModalTitle" style="color: #ff4757; margin-top: 0;">🎉 HOÀN THÀNH CHẶNG!</h2>
+        <div style="font-size: 55px;" id="stageModalIcon">🌟</div>
+        <p id="stageModalBody" style="color: #2f3542; font-size: 17px; font-weight: bold; line-height: 1.5;"></p>
+        <button type="button" class="btn-modal" id="closeStageBtn">Tiếp tục ➔</button>
     </div>
 </div>
 
@@ -246,6 +271,8 @@
         stage: 1,
         questionInStage: 1,
         maxStageQuestions: 10,
+        masteryScoreInStage: 0, // Đúng lần 1 = 1.0d, Đúng lần 2 = 0.5d
+        firstTryCorrectCount: 0,
         triesLeft: 2,
         currentQ: null,
         badges: new Set(),
@@ -291,22 +318,30 @@
         document.getElementById('achievementText').innerText = `🏆 Huy hiệu: ${GameState.badges.size}`;
     }
 
-    function closeModal() {
+    function closeBadgeModal() {
         document.getElementById('badgeModal').style.display = 'none';
         setTimeout(processBadgeQueue, 200);
     }
 
-    // --- MODULE 3: QUESTION ENGINES WITH STAGE PROGRESSION ---
+    // --- MODULE 3: QUESTION ENGINES WITH UNIFIED DIFFICULTY SCALING ---
     const QuestionEngines = {
         // 1. Góc
         ANGLE(stage) {
-            const angles = [
-                { type: 'Góc nhọn', deg: 45, desc: 'góc bé hơn góc vuông' },
-                { type: 'Góc vuông', deg: 90, desc: 'góc bằng 90 độ' },
-                { type: 'Góc tù', deg: 120, desc: 'góc lớn hơn góc vuông' },
-                { type: 'Góc bẹt', deg: 180, desc: 'góc bằng hai góc vuông' }
-            ];
-            const target = angles[Math.floor(Math.random() * angles.length)];
+            let pool = [];
+            if (stage === 1) {
+                pool = [
+                    { type: 'Góc nhọn', deg: 45, desc: 'góc bé hơn góc vuông' },
+                    { type: 'Góc vuông', deg: 90, desc: 'góc bằng 90 độ' }
+                ];
+            } else {
+                pool = [
+                    { type: 'Góc nhọn', deg: 45, desc: 'góc bé hơn góc vuông' },
+                    { type: 'Góc vuông', deg: 90, desc: 'góc bằng 90 độ' },
+                    { type: 'Góc tù', deg: 120, desc: 'góc lớn hơn góc vuông' },
+                    { type: 'Góc bẹt', deg: 180, desc: 'góc bằng hai góc vuông' }
+                ];
+            }
+            const target = pool[Math.floor(Math.random() * pool.length)];
             const rad = (180 - target.deg) * Math.PI / 180;
             const x2 = 140 + 70 * Math.cos(rad);
             const y2 = 100 - 70 * Math.sin(rad);
@@ -330,8 +365,8 @@
         EVEN_ODD(stage) {
             const isEven = Math.random() > 0.5;
             const label = isEven ? 'SỐ CHẤN' : 'SỐ LẺ';
-            const baseMax = stage > 2 ? 800000 : 80000;
-            let targetNum = Math.floor(Math.random() * baseMax) + 10000;
+            const baseMax = stage === 1 ? 50000 : (stage <= 3 ? 200000 : 1000000);
+            let targetNum = Math.floor(Math.random() * (baseMax - 10000)) + 10000;
             targetNum = isEven ? (targetNum % 2 === 0 ? targetNum : targetNum + 1) : (targetNum % 2 !== 0 ? targetNum : targetNum + 1);
 
             let d1 = targetNum + 1, d2 = targetNum + 3, d3 = targetNum + 5;
@@ -352,40 +387,38 @@
             };
         },
 
-        // 3. Làm tròn số chuẩn sư phạm
+        // 3. Làm tròn số
         ROUNDING(stage) {
-            const hundredThousandDigit = Math.floor(Math.random() * 8) + 1;
-            const tenThousandDigit = Math.floor(Math.random() * 9);
-            const num = hundredThousandDigit * 100000 + tenThousandDigit * 10000 + Math.floor(Math.random() * 9000) + 1000;
+            const roundUnit = stage === 1 ? 10000 : (stage <= 3 ? 100000 : 1000000);
+            const unitLabel = stage === 1 ? 'hàng chục nghìn' : (stage <= 3 ? 'hàng trăm nghìn' : 'hàng triệu');
+            
+            const baseVal = Math.floor(Math.random() * 80) + 10;
+            const num = baseVal * roundUnit + Math.floor(Math.random() * (roundUnit - 100)) + 100;
+            const correctVal = Math.round(num / roundUnit) * roundUnit;
 
-            const correctVal = Math.round(num / 100000) * 100000;
-            let d1 = (hundredThousandDigit + 1) * 100000;
-            let d2 = (hundredThousandDigit - 1 > 0 ? hundredThousandDigit - 1 : hundredThousandDigit + 2) * 100000;
-            let d3 = Math.round(num / 10000) * 10000;
-
-            if (d1 === correctVal) d1 += 100000;
-            if (d2 === correctVal) d2 += 200000;
-            if (d3 === correctVal) d3 += 10000;
+            let d1 = correctVal + roundUnit;
+            let d2 = Math.max(0, correctVal - roundUnit);
+            let d3 = correctVal + roundUnit * 2;
 
             const correctStr = correctVal.toLocaleString('vi-VN');
             const opts = [correctVal, d1, d2, d3].map(n => n.toLocaleString('vi-VN'));
 
             return {
                 typeCategory: 'ROUNDING',
-                qText: `Làm tròn số **${num.toLocaleString('vi-VN')}** đến hàng trăm nghìn ta được:`,
+                qText: `Làm tròn số **${num.toLocaleString('vi-VN')}** đến **${unitLabel}** ta được:`,
                 visualHtml: `<div style="font-size:45px;">🎯🎯</div>`,
                 options: opts,
                 correctAnswer: correctStr,
-                hint: `Nhìn vào chữ số hàng chục nghìn (${tenThousandDigit}). Nếu từ 5 trở lên thì làm tròn lên nhé!`,
-                explain: `Chữ số hàng chục nghìn là ${tenThousandDigit} (${tenThousandDigit >= 5 ? '≥ 5 làm tròn lên' : '< 5 làm tròn xuống'}), ta được **${correctStr}**.`
+                hint: `Xét chữ số hàng ngay sau ${unitLabel}. Nếu từ 5 trở lên thì làm tròn lên nhé!`,
+                explain: `Làm tròn số ${num.toLocaleString('vi-VN')} đến ${unitLabel} ta được **${correctStr}**.`
             };
         },
 
         // 4. Hàng và Lớp
         PLACE_CLASS(stage) {
-            const baseMultiplier = stage > 1 ? 89999999 : 899999;
-            const baseMin = stage > 1 ? 1000000 : 100000;
-            const num = Math.floor(Math.random() * baseMultiplier) + baseMin;
+            const maxMultiplier = stage === 1 ? 899999 : (stage <= 3 ? 8999999 : 89999999);
+            const minBase = stage === 1 ? 100000 : (stage <= 3 ? 1000000 : 10000000);
+            const num = Math.floor(Math.random() * maxMultiplier) + minBase;
             const numStr = num.toString();
             
             const idx = Math.floor(Math.random() * numStr.length);
@@ -410,18 +443,22 @@
 
         // 5. Giá trị chữ số
         DIGIT_VALUE(stage) {
-            const num = Math.floor(Math.random() * 899999) + 100000;
+            const maxMultiplier = stage === 1 ? 899999 : (stage <= 3 ? 8999999 : 89999999);
+            const minBase = stage === 1 ? 100000 : (stage <= 3 ? 1000000 : 10000000);
+            const num = Math.floor(Math.random() * maxMultiplier) + minBase;
             const numStr = num.toString();
             
             let idx = Math.floor(Math.random() * numStr.length);
-            while (parseInt(numStr[idx]) === 0) {
+            let attempts = 0;
+            while (parseInt(numStr[idx]) === 0 && attempts < 20) {
                 idx = Math.floor(Math.random() * numStr.length);
+                attempts++;
             }
-            const digit = parseInt(numStr[idx]);
+            const digit = parseInt(numStr[idx]) || 5;
             const placeValue = Math.pow(10, numStr.length - 1 - idx);
             const correctVal = digit * placeValue;
 
-            const wrong1 = digit * (placeValue >= 100000 ? 10000 : placeValue * 10);
+            const wrong1 = digit * (placeValue >= 1000000 ? 100000 : placeValue * 10);
             const wrong2 = digit * (placeValue <= 10 ? 100 : Math.floor(placeValue / 10));
             const wrong3 = digit;
 
@@ -441,7 +478,7 @@
 
         // 6. Biểu thức
         EXPRESSION(stage) {
-            const mode = stage === 1 ? Math.floor(Math.random() * 2) : Math.floor(Math.random() * 3);
+            const mode = stage === 1 ? 0 : (stage <= 3 ? Math.floor(Math.random() * 2) : Math.floor(Math.random() * 3));
             let qText = '', val = 0, hint = '';
 
             if (mode === 0) {
@@ -479,41 +516,105 @@
             };
         },
 
-        // 7. Đổi đơn vị
+        // 7. Đổi đơn vị (Đa dạng 4 kịch bản đầy đủ)
         UNIT(stage) {
-            const units = [
-                { q: "3 tấn 50 kg = ... kg?", a: "3 050 kg", opts: ["3 050 kg", "3 500 kg", "350 kg", "3 005 kg"], hint: "1 tấn = 1000 kg" },
-                { q: "2 m² 15 dm² = ... dm²?", a: "215 dm²", opts: ["215 dm²", "2 015 dm²", "2 150 dm²", "250 dm²"], hint: "1 m² = 100 dm²" },
-                { q: "5 phút 20 giây = ... giây?", a: "320 giây", opts: ["320 giây", "520 giây", "300 giây", "250 giây"], hint: "1 phút = 60 giây" },
-                { q: "2 thế kỷ = ... năm?", a: "200 năm", opts: ["200 năm", "20 năm", "2 000 năm", "100 năm"], hint: "1 thế kỷ = 100 năm" }
-            ];
-            const u = units[Math.floor(Math.random() * units.length)];
+            const scenario = Math.floor(Math.random() * 4); // 0: Tấn/kg, 1: m2/dm2, 2: Phút/giây, 3: Thế kỷ/năm
+            let qText, correctStr, opts, hint, explain;
+
+            if (scenario === 0) {
+                const ton = Math.floor(Math.random() * 8) + 2;
+                const kg = Math.floor(Math.random() * 80) + 10;
+                const totalKg = ton * 1000 + kg;
+                qText = `Đổi đơn vị: **${ton} tấn ${kg} kg = ... kg?**`;
+                correctStr = `${totalKg.toLocaleString('vi-VN')} kg`;
+                opts = [
+                    correctStr,
+                    `${(ton * 100 + kg).toLocaleString('vi-VN')} kg`,
+                    `${(totalKg + 100).toLocaleString('vi-VN')} kg`,
+                    `${(ton * 1000).toLocaleString('vi-VN')} kg`
+                ];
+                hint = `1 tấn = 1 000 kg. Nhớ nhân ${ton} với 1 000 rồi cộng ${kg}!`;
+                explain = `Đổi: ${ton} tấn = ${ton * 1000} kg. Cộng thêm ${kg} kg ta được **${correctStr}**.`;
+            } else if (scenario === 1) {
+                const m2 = Math.floor(Math.random() * 8) + 2;
+                const dm2 = Math.floor(Math.random() * 80) + 10;
+                const totalDm2 = m2 * 100 + dm2;
+                qText = `Đổi đơn vị: **${m2} m² ${dm2} dm² = ... dm²?**`;
+                correctStr = `${totalDm2.toLocaleString('vi-VN')} dm²`;
+                opts = [
+                    correctStr,
+                    `${(m2 * 10 + dm2).toLocaleString('vi-VN')} dm²`,
+                    `${(totalDm2 + 100).toLocaleString('vi-VN')} dm²`,
+                    `${(m2 * 1000 + dm2).toLocaleString('vi-VN')} dm²`
+                ];
+                hint = `1 m² = 100 dm². Nhân ${m2} với 100 rồi cộng ${dm2}!`;
+                explain = `Đổi: ${m2} m² = ${m2 * 100} dm². Cộng thêm ${dm2} dm² ta được **${correctStr}**.`;
+            } else if (scenario === 2) {
+                const min = Math.floor(Math.random() * 5) + 2;
+                const sec = Math.floor(Math.random() * 40) + 10;
+                const totalSec = min * 60 + sec;
+                qText = `Đổi đơn vị: **${min} phút ${sec} giây = ... giây?**`;
+                correctStr = `${totalSec.toLocaleString('vi-VN')} giây`;
+                opts = [
+                    correctStr,
+                    `${(min * 100 + sec).toLocaleString('vi-VN')} giây`,
+                    `${(totalSec + 60).toLocaleString('vi-VN')} giây`,
+                    `${(min * 60).toLocaleString('vi-VN')} giây`
+                ];
+                hint = `1 phút = 60 giây. Nhân ${min} với 60 rồi cộng ${sec}!`;
+                explain = `Đổi: ${min} phút = ${min * 60} giây. Cộng thêm ${sec} giây ta được **${correctStr}**.`;
+            } else {
+                const century = Math.floor(Math.random() * 5) + 2;
+                const years = Math.floor(Math.random() * 40) + 10;
+                const totalYears = century * 100 + years;
+                qText = `Đổi đơn vị: **${century} thế kỷ ${years} năm = ... năm?**`;
+                correctStr = `${totalYears.toLocaleString('vi-VN')} năm`;
+                opts = [
+                    correctStr,
+                    `${(century * 10 + years).toLocaleString('vi-VN')} năm`,
+                    `${(totalYears + 100).toLocaleString('vi-VN')} năm`,
+                    `${(century * 1000).toLocaleString('vi-VN')} năm`
+                ];
+                hint = `1 thế kỷ = 100 năm. Nhân ${century} với 100 rồi cộng ${years}!`;
+                explain = `Đổi: ${century} thế kỷ = ${century * 100} năm. Cộng thêm ${years} năm ta được **${correctStr}**.`;
+            }
 
             return {
                 typeCategory: 'UNIT',
-                qText: `Bé hãy đổi đơn vị sau: **${u.q}**`,
+                qText: qText,
                 visualHtml: `<div style="font-size:45px;">⚖️⌛</div>`,
-                options: u.opts,
-                correctAnswer: u.a,
-                hint: u.hint,
-                explain: `Đổi chính xác: **${u.a}**.`
+                options: opts,
+                correctAnswer: correctStr,
+                hint: hint,
+                explain: explain
             };
         },
 
-        // 8. So sánh số
+        // 8. So sánh số (Case '=' đồng bộ dải số lớn)
         COMPARE(stage) {
-            const place = Math.pow(10, Math.floor(Math.random() * 4) + 1);
-            const prefix = Math.floor(Math.random() * 80) + 10;
-            const digitA = Math.floor(Math.random() * 8) + 1;
-            let digitB = Math.floor(Math.random() * 8) + 1;
-            if (digitA === digitB) digitB = (digitA % 8) + 1;
+            const isEqual = Math.random() < 0.2; // 20% xác suất bằng nhau
+            const maxMultiplier = stage === 1 ? 899999 : (stage <= 3 ? 8999999 : 89999999);
+            const minBase = stage === 1 ? 100000 : (stage <= 3 ? 1000000 : 10000000);
 
-            const baseA = prefix * 100000 + digitA * place + Math.floor(Math.random() * (place - 1));
-            const baseB = prefix * 100000 + digitB * place + Math.floor(Math.random() * (place - 1));
+            let baseA, baseB, symbol;
+            if (isEqual) {
+                baseA = Math.floor(Math.random() * maxMultiplier) + minBase;
+                baseB = baseA;
+                symbol = '=';
+            } else {
+                const place = Math.pow(10, Math.min(stage + 1, 5));
+                const prefix = Math.floor(Math.random() * 80) + 10;
+                let digitA = Math.floor(Math.random() * 8) + 1;
+                let digitB = Math.floor(Math.random() * 8) + 1;
+                if (digitA === digitB) digitB = (digitA % 8) + 1;
 
-            let symbol = '=';
-            if (baseA > baseB) symbol = '>';
-            else if (baseA < baseB) symbol = '<';
+                baseA = prefix * 100000 + digitA * place + Math.floor(Math.random() * (place - 1));
+                baseB = prefix * 100000 + digitB * place + Math.floor(Math.random() * (place - 1));
+
+                if (baseA > baseB) symbol = '>';
+                else if (baseA < baseB) symbol = '<';
+                else symbol = '=';
+            }
 
             return {
                 typeCategory: 'COMPARE',
@@ -528,32 +629,69 @@
 
         // 9. Toán có lời văn
         WORD_PROBLEM(stage) {
-            const priceBook = (Math.floor(Math.random() * 4) + 6) * 1000;
-            const pricePen = (Math.floor(Math.random() * 3) + 3) * 1000;
-            const numBooks = Math.floor(Math.random() * 3) + 2;
-            const numPens = Math.floor(Math.random() * 3) + 2;
-            const total = numBooks * priceBook + numPens * pricePen;
-            const correctStr = total.toLocaleString('vi-VN') + ' đ';
+            const scenarios = [
+                () => {
+                    const priceBook = (Math.floor(Math.random() * 4) + 6) * 1000;
+                    const pricePen = (Math.floor(Math.random() * 3) + 3) * 1000;
+                    const numBooks = Math.floor(Math.random() * 3) + 2;
+                    const numPens = Math.floor(Math.random() * 3) + 2;
+                    const total = numBooks * priceBook + numPens * pricePen;
+                    const correctStr = total.toLocaleString('vi-VN') + ' đ';
 
+                    return {
+                        qText: `Mai mua **${numBooks}** quyển vở (giá ${priceBook.toLocaleString('vi-VN')} đ/quyển) và **${numPens}** cái bút (giá ${pricePen.toLocaleString('vi-VN')} đ/cái). Hỏi Mai phải trả tất cả bao nhiêu tiền?`,
+                        options: [
+                            correctStr,
+                            (total - 3000).toLocaleString('vi-VN') + ' đ',
+                            (total + 5000).toLocaleString('vi-VN') + ' đ',
+                            (numBooks * priceBook).toLocaleString('vi-VN') + ' đ'
+                        ],
+                        correctAnswer: correctStr,
+                        hint: `Bước 1: Tính tiền vở. Bước 2: Tính tiền bút. Bước 3: Cộng lại!`,
+                        explain: `Tiền vở: ${(numBooks*priceBook).toLocaleString('vi-VN')}đ. Tiền bút: ${(numPens*pricePen).toLocaleString('vi-VN')}đ. Tổng cộng: **${correctStr}**.`
+                    };
+                },
+                () => {
+                    const totalBooks = (Math.floor(Math.random() * 5) + 10) * 100;
+                    const sold1 = Math.floor(Math.random() * 3 + 2) * 100;
+                    const sold2 = Math.floor(Math.random() * 2 + 1) * 100;
+                    const remaining = totalBooks - sold1 - sold2;
+                    const correctStr = remaining.toLocaleString('vi-VN') + ' quyển';
+
+                    return {
+                        qText: `Cửa hàng Góc Sách có **${totalBooks.toLocaleString('vi-VN')}** quyển truyện. Ngày đầu bán **${sold1}** quyển, ngày sau bán **${sold2}** quyển. Hỏi cửa hàng còn lại bao nhiêu quyển?`,
+                        options: [
+                            correctStr,
+                            (totalBooks - sold1).toLocaleString('vi-VN') + ' quyển',
+                            (remaining + 200).toLocaleString('vi-VN') + ' quyển',
+                            (sold1 + sold2).toLocaleString('vi-VN') + ' quyển'
+                        ],
+                        correctAnswer: correctStr,
+                        hint: `Bước 1: Tính tổng số truyện bán 2 ngày. Bước 2: Lấy ban đầu trừ đi số đã bán!`,
+                        explain: `Đã bán: ${sold1+sold2} quyển. Còn lại: **${correctStr}**.`
+                    };
+                }
+            ];
+
+            const p = scenarios[Math.floor(Math.random() * scenarios.length)]();
             return {
                 typeCategory: 'WORD_PROBLEM',
-                qText: `Mai mua **${numBooks}** quyển vở (giá ${priceBook.toLocaleString('vi-VN')} đ/quyển) và **${numPens}** cái bút (giá ${pricePen.toLocaleString('vi-VN')} đ/cái). Hỏi Mai phải trả tất cả bao nhiêu tiền?`,
+                qText: p.qText,
                 visualHtml: `<div style="font-size:45px;">📚🛒</div>`,
-                options: [
-                    correctStr,
-                    (total - 3000).toLocaleString('vi-VN') + ' đ',
-                    (total + 5000).toLocaleString('vi-VN') + ' đ',
-                    (numBooks * priceBook).toLocaleString('vi-VN') + ' đ'
-                ],
-                correctAnswer: correctStr,
-                hint: `Bước 1: Tính tiền vở. Bước 2: Tính tiền bút. Bước 3: Cộng lại!`,
-                explain: `Tiền vở: ${(numBooks*priceBook).toLocaleString('vi-VN')}đ. Tiền bút: ${(numPens*pricePen).toLocaleString('vi-VN')}đ. Tổng cộng: **${correctStr}**.`
+                options: p.options,
+                correctAnswer: p.correctAnswer,
+                hint: p.hint,
+                explain: p.explain
             };
         },
 
-        // 10. Hình học
+        // 10. Hình học (Cân bằng xác suất hình vuông/chữ nhật)
         GEOMETRY(stage) {
-            const isSquare = Math.random() > 0.5;
+            let isSquare;
+            if (stage === 1) isSquare = Math.random() < 0.7; // 70% hình vuông
+            else if (stage === 2) isSquare = Math.random() < 0.3; // 30% hình vuông
+            else isSquare = Math.random() < 0.5; // 50/50
+
             if (isSquare) {
                 const a = Math.floor(Math.random() * 8) + 3;
                 const p = a * 4;
@@ -561,10 +699,10 @@
 
                 return {
                     typeCategory: 'GEOMETRY',
-                    qText: `Hình vuông có cạnh **a = ${a} cm**. Chu vi P của hình vuông đó là:`,
-                    visualHtml: `<svg width="100" height="100" viewBox="0 0 100 100">
-                        <rect x="15" y="15" width="70" height="70" stroke="#70a1ff" stroke-width="4" fill="#eccc68"/>
-                        <text x="50" y="55" font-weight="bold" text-anchor="middle" fill="#2f3542">${a} cm</text>
+                    qText: `Hình vuông có độ dài cạnh **a = ${a} cm**. Chu vi P của hình vuông đó là:`,
+                    visualHtml: `<svg width="120" height="110" viewBox="0 0 120 110">
+                        <text x="60" y="18" font-weight="bold" font-size="13" text-anchor="middle" fill="#2f3542">a = ${a} cm</text>
+                        <rect x="25" y="25" width="70" height="70" stroke="#70a1ff" stroke-width="4" fill="#eccc68" rx="6"/>
                     </svg>`,
                     options: [correctStr, `${a * a} cm`, `${p + 4} cm`, `${a * 2} cm`],
                     correctAnswer: correctStr,
@@ -572,17 +710,18 @@
                     explain: `Chu vi hình vuông = ${a} × 4 = **${correctStr}**.`
                 };
             } else {
-                const a = Math.floor(Math.random() * 8) + 6;
-                const b = Math.floor(Math.random() * 4) + 2;
+                const a = Math.floor(Math.random() * 6) + 8;
+                const b = Math.floor(Math.random() * 4) + 3;
                 const p = (a + b) * 2;
                 const correctStr = `${p} cm`;
 
                 return {
                     typeCategory: 'GEOMETRY',
                     qText: `Hình chữ nhật có chiều dài **a = ${a} cm**, chiều rộng **b = ${b} cm**. Chu vi P là:`,
-                    visualHtml: `<svg width="120" height="80" viewBox="0 0 120 80">
-                        <rect x="10" y="15" width="100" height="50" stroke="#ff4757" stroke-width="4" fill="#7bed9f"/>
-                        <text x="60" y="45" font-weight="bold" text-anchor="middle" fill="#2f3542">${a}x${b}</text>
+                    visualHtml: `<svg width="200" height="110" viewBox="0 0 200 110">
+                        <text x="100" y="20" font-weight="bold" font-size="13" text-anchor="middle" fill="#2f3542">Chiều dài a = ${a} cm</text>
+                        <rect x="30" y="28" width="140" height="55" stroke="#ff4757" stroke-width="4" fill="#7bed9f" rx="6"/>
+                        <text x="175" y="60" font-weight="bold" font-size="12" text-anchor="start" fill="#2f3542">b = ${b} cm</text>
                     </svg>`,
                     options: [correctStr, `${a * b} cm`, `${a + b} cm`, `${(a + b) * 4} cm`],
                     correctAnswer: correctStr,
@@ -685,6 +824,14 @@
             btns[selectedIdx].style.borderColor = '#2ed573';
             btns.forEach(b => b.disabled = true);
 
+            // Tính điểm năng lực quy đổi (1.0d cho Lần 1, 0.5d cho Lần 2)
+            if (GameState.triesLeft === 2) {
+                GameState.masteryScoreInStage += 1.0;
+                GameState.firstTryCorrectCount++;
+            } else {
+                GameState.masteryScoreInStage += 0.5;
+            }
+
             GameState.streak++;
             let bonus = 10;
             if (GameState.streak >= 5) bonus += 10;
@@ -696,7 +843,8 @@
             document.getElementById('scoreDisplay').innerText = GameState.score;
             document.getElementById('streakDisplay').innerText = `🔥 Chuỗi: ${GameState.streak}`;
 
-            feedback.innerHTML = `<span class="correct">🎉 Chính xác! (+${bonus} điểm)</span><br><small>${parseMarkdown(q.explain)}</small>`;
+            const tryLabel = GameState.triesLeft === 1 ? ' (Lần 2: +5 điểm)' : ` (+${bonus} điểm)`;
+            feedback.innerHTML = `<span class="correct">🎉 Chính xác!${tryLabel}</span><br><small>${parseMarkdown(q.explain)}</small>`;
             AudioMgr.speak("Bé Thanh Vân giỏi quá, chính xác rồi!");
 
             checkBadges(q.typeCategory);
@@ -716,8 +864,9 @@
                 AudioMgr.speak("Chưa đúng rồi, bé thử lại một lần nữa nhé!");
 
             } else {
-                GameState.streak = 0;
-                document.getElementById('streakDisplay').innerText = `🔥 Chuỗi: 0`;
+                // Sai ở lần 2: Giảm nhẹ 50% streak bảo tồn thành quả
+                GameState.streak = Math.floor(GameState.streak / 2);
+                document.getElementById('streakDisplay').innerText = `🔥 Chuỗi: ${GameState.streak}`;
                 btns.forEach(b => b.disabled = true);
                 
                 btns[q.correctIdx].style.background = '#2ed573';
@@ -729,22 +878,61 @@
         }
     }
 
-    function nextQuestion() {
-        if (GameState.questionInStage < GameState.maxStageQuestions) {
-            GameState.questionInStage++;
+    function showStageModal(passed, stage, masteryScore) {
+        const modal = document.getElementById('stageModal');
+        const title = document.getElementById('stageModalTitle');
+        const icon = document.getElementById('stageModalIcon');
+        const body = document.getElementById('stageModalBody');
+
+        if (passed) {
+            title.innerText = "🎉 XUẤT SẮC HOÀN THÀNH!";
+            title.style.color = "#2ed573";
+            icon.innerText = "🏆";
+            body.innerHTML = `Bé Thanh Vân đạt **${masteryScore.toFixed(1)}/10.0 điểm năng lực**.<br>Đủ điều kiện để tiến vào **Chặng ${stage + 1}**!`;
+            AudioMgr.play('badge');
         } else {
-            GameState.stage++;
-            GameState.questionInStage = 1;
-            document.getElementById('levelTitle').innerText = `Chặng ${GameState.stage}: ${GameState.stage === 2 ? 'Hiệp Sĩ' : 'Bậc Thầy'}`;
-            alert(`🎉 CHÚC MỪNG BÉ THANH VÂN HOÀN THÀNH CHẶNG ${GameState.stage - 1}! SẴN SÀNG CHO CHẶNG ${GameState.stage} NHÉ!`);
+            title.innerText = "🌱 CỐ GẮNG LÊN THANH VÂN!";
+            title.style.color = "#ffa502";
+            icon.innerText = "💪";
+            body.innerHTML = `Bé đạt **${masteryScore.toFixed(1)}/10.0 điểm năng lực**.<br>Cùng luyện tập thêm **Chặng ${stage}** một lần nữa để nắm thật vững bài nhé!`;
+            AudioMgr.play('wrong');
         }
+
+        modal.style.display = 'flex';
+    }
+
+    function closeStageModal() {
+        document.getElementById('stageModal').style.display = 'none';
+        
+        const passed = (GameState.masteryScoreInStage / GameState.maxStageQuestions) >= 0.6; // Đạt >= 6.0 điểm quy đổi
+        if (passed) {
+            GameState.stage++;
+            const stageNames = ['', 'Tập Sự', 'Hiệp Sĩ', 'Bậc Thầy', 'Siêu Toán'];
+            const stageName = stageNames[GameState.stage] || 'Huyền Thoại';
+            document.getElementById('levelTitle').innerText = `Chặng ${GameState.stage}: ${stageName}`;
+        }
+        
+        GameState.questionInStage = 1;
+        GameState.masteryScoreInStage = 0;
+        GameState.firstTryCorrectCount = 0;
         renderQuestion();
     }
 
-    // Tách Event Listeners khỏi HTML inline attributes
+    function nextQuestion() {
+        if (GameState.questionInStage < GameState.maxStageQuestions) {
+            GameState.questionInStage++;
+            renderQuestion();
+        } else {
+            // Đánh giá năng lực theo điểm quy đổi (Lần 1 = 1d, Lần 2 = 0.5d)
+            const passed = (GameState.masteryScoreInStage / GameState.maxStageQuestions) >= 0.6;
+            showStageModal(passed, GameState.stage, GameState.masteryScoreInStage);
+        }
+    }
+
     document.getElementById('nextBtn').addEventListener('click', nextQuestion);
     document.getElementById('soundBtn').addEventListener('click', toggleSound);
-    document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+    document.getElementById('closeBadgeBtn').addEventListener('click', closeBadgeModal);
+    document.getElementById('closeStageBtn').addEventListener('click', closeStageModal);
 
     renderQuestion();
 </script>
