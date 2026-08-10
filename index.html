@@ -195,15 +195,39 @@
 </div>
 
 <script>
-    // --- MODULE 1: SOUND & VOICE AUDIO MANAGER ---
+    // --- MODULE 1: SOUND & VOICE AUDIO MANAGER (SỬA LỖI GIỌNG ĐỌC TIẾNG VIỆT) ---
     const AudioMgr = {
         ctx: null,
         soundEnabled: true,
+        vietnameseVoice: null,
+
         init() {
             if (!this.ctx) {
                 this.ctx = new (window.AudioContext || window.webkitAudioContext)();
             }
+            this.loadVietnameseVoice();
         },
+
+        // Tự động tìm và chọn đúng giọng đọc Tiếng Việt trong hệ điều hành
+        loadVietnameseVoice() {
+            if (!('speechSynthesis' in window)) return;
+            
+            const findVoice = () => {
+                const voices = window.speechSynthesis.getVoices();
+                // Tìm giọng đọc có mã ngôn ngữ vi hoặc chứa từ khóa Vietnam/Vietnamese
+                this.vietnameseVoice = voices.find(v => 
+                    v.lang.toLowerCase().includes('vi') || 
+                    v.name.toLowerCase().includes('vietnam') || 
+                    v.name.toLowerCase().includes('vietnamese')
+                ) || null;
+            };
+
+            findVoice();
+            if (window.speechSynthesis.onvoiceschanged !== undefined) {
+                window.speechSynthesis.onvoiceschanged = findVoice;
+            }
+        },
+
         play(type) {
             if (!this.soundEnabled) return;
             this.init();
@@ -238,12 +262,24 @@
                 }
             } catch(e) {}
         },
+
         speak(text) {
             if (!this.soundEnabled || !('speechSynthesis' in window)) return;
-            window.speechSynthesis.cancel();
+            window.speechSynthesis.cancel(); // Dừng câu đọc trước đó
+
+            if (!this.vietnameseVoice) this.loadVietnameseVoice();
+
             const u = new SpeechSynthesisUtterance(text);
-            u.lang = 'vi-VN'; u.rate = 1.0;
-            window.speechSynthesis.speak(u);
+            u.lang = 'vi-VN';
+            u.rate = 1.0;
+
+            if (this.vietnameseVoice) {
+                u.voice = this.vietnameseVoice; // Gán đúng giọng Tiếng Việt
+                window.speechSynthesis.speak(u);
+            } else {
+                // Nếu trình duyệt tự khớp được gói vi-VN thì phát
+                window.speechSynthesis.speak(u);
+            }
         }
     };
 
@@ -271,7 +307,7 @@
         stage: 1,
         questionInStage: 1,
         maxStageQuestions: 10,
-        masteryScoreInStage: 0, // Đúng lần 1 = 1.0d, Đúng lần 2 = 0.5d
+        masteryScoreInStage: 0,
         firstTryCorrectCount: 0,
         triesLeft: 2,
         currentQ: null,
@@ -323,7 +359,7 @@
         setTimeout(processBadgeQueue, 200);
     }
 
-    // --- MODULE 3: QUESTION ENGINES WITH UNIFIED DIFFICULTY SCALING ---
+    // --- MODULE 3: QUESTION ENGINES ---
     const QuestionEngines = {
         // 1. Góc
         ANGLE(stage) {
@@ -364,7 +400,7 @@
         // 2. Số chẵn / Số lẻ
         EVEN_ODD(stage) {
             const isEven = Math.random() > 0.5;
-            const label = isEven ? 'SỐ CHẤN' : 'SỐ LẺ';
+            const label = isEven ? 'SỐ CHẮN' : 'SỐ LẺ';
             const baseMax = stage === 1 ? 50000 : (stage <= 3 ? 200000 : 1000000);
             let targetNum = Math.floor(Math.random() * (baseMax - 10000)) + 10000;
             targetNum = isEven ? (targetNum % 2 === 0 ? targetNum : targetNum + 1) : (targetNum % 2 !== 0 ? targetNum : targetNum + 1);
@@ -516,9 +552,9 @@
             };
         },
 
-        // 7. Đổi đơn vị (Đa dạng 4 kịch bản đầy đủ)
+        // 7. Đổi đơn vị
         UNIT(stage) {
-            const scenario = Math.floor(Math.random() * 4); // 0: Tấn/kg, 1: m2/dm2, 2: Phút/giây, 3: Thế kỷ/năm
+            const scenario = Math.floor(Math.random() * 4);
             let qText, correctStr, opts, hint, explain;
 
             if (scenario === 0) {
@@ -590,9 +626,9 @@
             };
         },
 
-        // 8. So sánh số (Case '=' đồng bộ dải số lớn)
+        // 8. So sánh số
         COMPARE(stage) {
-            const isEqual = Math.random() < 0.2; // 20% xác suất bằng nhau
+            const isEqual = Math.random() < 0.2;
             const maxMultiplier = stage === 1 ? 899999 : (stage <= 3 ? 8999999 : 89999999);
             const minBase = stage === 1 ? 100000 : (stage <= 3 ? 1000000 : 10000000);
 
@@ -685,12 +721,12 @@
             };
         },
 
-        // 10. Hình học (Cân bằng xác suất hình vuông/chữ nhật)
+        // 10. Hình học
         GEOMETRY(stage) {
             let isSquare;
-            if (stage === 1) isSquare = Math.random() < 0.7; // 70% hình vuông
-            else if (stage === 2) isSquare = Math.random() < 0.3; // 30% hình vuông
-            else isSquare = Math.random() < 0.5; // 50/50
+            if (stage === 1) isSquare = Math.random() < 0.7;
+            else if (stage === 2) isSquare = Math.random() < 0.3;
+            else isSquare = Math.random() < 0.5;
 
             if (isSquare) {
                 const a = Math.floor(Math.random() * 8) + 3;
@@ -824,7 +860,6 @@
             btns[selectedIdx].style.borderColor = '#2ed573';
             btns.forEach(b => b.disabled = true);
 
-            // Tính điểm năng lực quy đổi (1.0d cho Lần 1, 0.5d cho Lần 2)
             if (GameState.triesLeft === 2) {
                 GameState.masteryScoreInStage += 1.0;
                 GameState.firstTryCorrectCount++;
@@ -864,7 +899,6 @@
                 AudioMgr.speak("Chưa đúng rồi, bé thử lại một lần nữa nhé!");
 
             } else {
-                // Sai ở lần 2: Giảm nhẹ 50% streak bảo tồn thành quả
                 GameState.streak = Math.floor(GameState.streak / 2);
                 document.getElementById('streakDisplay').innerText = `🔥 Chuỗi: ${GameState.streak}`;
                 btns.forEach(b => b.disabled = true);
@@ -904,7 +938,7 @@
     function closeStageModal() {
         document.getElementById('stageModal').style.display = 'none';
         
-        const passed = (GameState.masteryScoreInStage / GameState.maxStageQuestions) >= 0.6; // Đạt >= 6.0 điểm quy đổi
+        const passed = (GameState.masteryScoreInStage / GameState.maxStageQuestions) >= 0.6;
         if (passed) {
             GameState.stage++;
             const stageNames = ['', 'Tập Sự', 'Hiệp Sĩ', 'Bậc Thầy', 'Siêu Toán'];
@@ -923,17 +957,19 @@
             GameState.questionInStage++;
             renderQuestion();
         } else {
-            // Đánh giá năng lực theo điểm quy đổi (Lần 1 = 1d, Lần 2 = 0.5d)
             const passed = (GameState.masteryScoreInStage / GameState.maxStageQuestions) >= 0.6;
             showStageModal(passed, GameState.stage, GameState.masteryScoreInStage);
         }
     }
 
+    // Khởi tạo các sự kiện tĩnh
     document.getElementById('nextBtn').addEventListener('click', nextQuestion);
     document.getElementById('soundBtn').addEventListener('click', toggleSound);
     document.getElementById('closeBadgeBtn').addEventListener('click', closeBadgeModal);
     document.getElementById('closeStageBtn').addEventListener('click', closeStageModal);
 
+    // Tự động kích hoạt tải giọng đọc Tiếng Việt ngay khi trang tải xong
+    AudioMgr.init();
     renderQuestion();
 </script>
 </body>
